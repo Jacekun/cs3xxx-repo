@@ -15,5 +15,5 @@ description = "Lorem Ipsum"
 status = 1
 
 // Set to true to get an 18+ symbol next to the plugin
-// isAdult = false // TODO: fix
+// adult = false // TODO: fix
 
