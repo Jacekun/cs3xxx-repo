@@ -18,5 +18,5 @@ cloudstream {
     status = 1 // will be 3 if unspecified
 
     // Set to true to get an 18+ symbol next to the plugin
-    isAdult = false // will be false if unspecified
+    adult = false // will be false if unspecified
 }
