@@ -1,0 +1,50 @@
+[
+    {
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Jacekun/cs3xxx-repo",
+        "status": 1,
+        "authors": [
+            "Jace"
+        ],
+        "tvTypes": [
+            "NSFW"
+        ],
+        "version": 1,
+        "internalName": "JavFreeProvider",
+        "description": "High quality JAV",
+        "url": "https://raw.githubusercontent.com/Jacekun/cs3xxx-repo/dev/cs3/JavFreeProvider.cs3",
+        "name": "JavFreeProvider"
+    },
+    {
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Jacekun/cs3xxx-repo",
+        "status": 1,
+        "authors": [
+            "Jace"
+        ],
+        "tvTypes": [
+            "NSFW"
+        ],
+        "version": 1,
+        "internalName": "JavSubProvider",
+        "description": "High quality JAV subbed",
+        "url": "https://raw.githubusercontent.com/Jacekun/cs3xxx-repo/dev/cs3/JavSubProvider.cs3",
+        "name": "JavSubProvider"
+    },
+    {
+        "apiVersion": 1,
+        "repositoryUrl": "https://github.com/Jacekun/cs3xxx-repo",
+        "status": 1,
+        "authors": [
+            "Jace"
+        ],
+        "tvTypes": [
+            "NSFW"
+        ],
+        "version": 1,
+        "internalName": "XvideosProvider",
+        "description": "The best free NSFW site",
+        "url": "https://raw.githubusercontent.com/Jacekun/cs3xxx-repo/dev/cs3/XvideosProvider.cs3",
+        "name": "XvideosProvider"
+    }
+]
