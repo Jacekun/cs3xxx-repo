@@ -5,7 +5,7 @@ version = 1
 cloudstream {
     // All of these properties are optional, you can safely remove them
 
-    description = "High quality JAV subbed"
+    description = "The best free NSFW site"
     authors = listOf("Jace")
 
     /**
