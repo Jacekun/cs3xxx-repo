@@ -22,5 +22,5 @@ cloudstream {
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
     tvTypes = listOf("NSFW")
 
-    iconUrl = "https://www.google.com/s2/favicons?domain=javsub.co&sz=%size%"
+    iconUrl = "https://javsub.co/wp-content/uploads/2021/09/jav-sub.png"
 }
