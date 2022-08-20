@@ -1,7 +1,9 @@
 [
     {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=javfree.sh&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/Jacekun/cs3xxx-repo",
+        "fileSize": 11551,
         "status": 1,
         "authors": [
             "Jace"
@@ -16,8 +18,10 @@
         "name": "JavFreeProvider"
     },
     {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=javsub.co&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/Jacekun/cs3xxx-repo",
+        "fileSize": 13987,
         "status": 1,
         "authors": [
             "Jace"
@@ -32,8 +36,10 @@
         "name": "JavSubProvider"
     },
     {
+        "iconUrl": "https://www.google.com/s2/favicons?domain=xvideos.com&sz=%size%",
         "apiVersion": 1,
         "repositoryUrl": "https://github.com/Jacekun/cs3xxx-repo",
+        "fileSize": 11939,
         "status": 1,
         "authors": [
             "Jace"

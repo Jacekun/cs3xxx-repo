@@ -21,4 +21,6 @@ cloudstream {
     // You can find a list of avaliable types here:
     // https://recloudstream.github.io/cloudstream/html/app/com.lagradost.cloudstream3/-tv-type/index.html
     tvTypes = listOf("NSFW")
+
+    iconUrl = "https://www.google.com/s2/favicons?domain=javsub.co&sz=%size%"
 }

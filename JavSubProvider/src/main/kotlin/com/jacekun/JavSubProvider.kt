@@ -3,7 +3,6 @@ package com.jacekun
 import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.extractors.FEmbed
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -211,11 +210,12 @@ class JavSubProvider : MainAPI() {
     private suspend fun extractStreamLink(
         link: String,
         subtitleCallback: (SubtitleFile) -> Unit,
-        callback: (ExtractorLink) -> Unit)
-            : Boolean {
+        callback: (ExtractorLink) -> Unit) : Boolean {
+        
         if (link.isNotBlank()) {
             when {
                 link.contains("watch-jav") -> {
+                    /* //TODO: Add extractor
                     val extractor = FEmbed()
                     extractor.domainUrl = "embedsito.com"
                     extractor.getSafeUrl(
@@ -225,6 +225,8 @@ class JavSubProvider : MainAPI() {
                         callback = callback
                     )
                     return true
+                    */
+                    return false
                 }
                 else -> {
                     return loadExtractor(

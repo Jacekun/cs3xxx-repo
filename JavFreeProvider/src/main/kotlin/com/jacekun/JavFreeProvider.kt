@@ -27,7 +27,9 @@ class JavFreeProvider : MainAPI() {
         @JsonProperty("active") val active: Int?
     )
 
-    fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free").removeSuffix("HD Free Online on JAVFree.SH").trim()
+    fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free")
+        .removeSuffix("HD Free Online on JAVFree.SH").trim()
+        .removePrefix("Watch JAV").trim()
 
     override suspend fun getMainPage(
         page: Int,
@@ -149,7 +151,6 @@ class JavFreeProvider : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
 
-        var success = false
         try {
             // GET request to: https://player.javfree.sh/stream/687234424271726c
             val id = data.substring(data.indexOf("#")).substring(1)
