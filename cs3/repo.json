@@ -1,8 +1,0 @@
-{
-    "name": "NSFW Providers",
-    "description": "For the coomers and degenerates",
-    "manifestVersion": 1,
-    "pluginLists": [
-        "https://raw.githubusercontent.com/Jacekun/cs3xxx-repo/dev/cs3/plugins.json"
-    ]
-}
