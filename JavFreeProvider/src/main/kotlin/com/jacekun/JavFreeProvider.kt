@@ -27,7 +27,7 @@ class JavFreeProvider : MainAPI() {
         @JsonProperty("active") val active: Int?
     )
 
-    fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free")
+    private fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free")
         .removeSuffix("HD Free Online on JAVFree.SH").trim()
         .removePrefix("Watch JAV").trim()
 
@@ -39,26 +39,25 @@ class JavFreeProvider : MainAPI() {
         val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 
-        val mainbody = document.getElementsByTag("body").select("div#page")
+        document.getElementsByTag("body").select("div#page")
             .select("div#content").select("div#primary")
             .select("main")
-
-        mainbody.select("section").forEach { it2 ->
+            .select("section").forEach { it2 ->
             // Fetch row title
             val title = it2?.select("h2.widget-title")?.text() ?: "Unnamed Row"
             // Fetch list of items and map
-            it2.select("div.videos-list")
-                .select("article").let { inner ->
+            it2.select("div.videos-list").select("article")
+                .let { inner ->
 
-                    val elements: List<SearchResponse> = inner.map {
+                    val elements: List<SearchResponse> = inner.mapNotNull {
 
                         val aa = it.select("a").firstOrNull()
-                        val link = fixUrl(aa?.attr("href") ?: "")
+                        val link = fixUrlNull(aa?.attr("href")) ?: return@mapNotNull null
                         val name = aa?.attr("title") ?: "<No Title>"
 
-                        var image = aa?.select("div")?.select("img")?.attr("data-src") ?: ""
-                        if (image == "") {
-                            image = aa?.select("div")?.select("video")?.attr("poster") ?: ""
+                        var image = aa?.select("div")?.select("img")?.attr("data-src")
+                        if (image.isNullOrBlank()) {
+                            image = aa?.select("div")?.select("video")?.attr("poster")
                         }
                         val year = null
 
@@ -85,21 +84,24 @@ class JavFreeProvider : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val url = "$mainUrl/search/movie/${query}"
-        val html = app.get(url).text
-        val document = Jsoup.parse(html).select("div.videos-list").select("article[id^=post]")
+        val searchUrl = "$mainUrl/search/movie/${query}"
+        val document = app.get(searchUrl).document
+            .select("div.videos-list").select("article[id^=post]")
 
-        return document.map {
-            val aa = it.select("a")
+        return document.mapNotNull {
+            val aa = it?.select("a") ?: return@mapNotNull null
+            val url = fixUrlNull(aa.attr("href")) ?: return@mapNotNull null
             val title = aa.attr("title")
-            val href = fixUrl(aa.attr("href"))
             val year = null
-            val image = aa.select("div.post-thumbnail.thumbs-rotation")
+            var image = aa.select("div.post-thumbnail.thumbs-rotation")
                 .select("img").attr("data-src")
+            if (image.isNullOrBlank()) {
+                image = aa.select("div").select("video").attr("poster").toString()
+            }
 
             MovieSearchResponse(
                 name = title,
-                url = href,
+                url = url,
                 apiName = this.name,
                 type = tvType,
                 posterUrl = image,
@@ -174,7 +176,7 @@ class JavFreeProvider : MainAPI() {
                 return true
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            //e.printStackTrace()
             logError(e)
         }
         return false
