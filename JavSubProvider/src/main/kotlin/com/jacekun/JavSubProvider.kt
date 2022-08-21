@@ -80,9 +80,9 @@ class JavSubProvider : MainAPI() {
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
         val document = app.get(url).document.getElementsByTag("body")
-            .select("main#main-content")?.select("article")
+            .select("main#main-content").select("article")
 
-        return document?.mapNotNull {
+        return document.mapNotNull {
             if (it == null) { return@mapNotNull null }
             val innerA = it.selectFirst("div.blog-pic-wrap > a")?: return@mapNotNull null
             val link = fixUrlNull(innerA.attr("href")) ?: return@mapNotNull null
@@ -100,7 +100,7 @@ class JavSubProvider : MainAPI() {
                 posterUrl = image,
                 year = year
             )
-        }?.distinctBy { b -> b.url } ?: listOf()
+        }.distinctBy { b -> b.url }
     }
 
     override suspend fun load(url: String): LoadResponse {
@@ -139,7 +139,7 @@ class JavSubProvider : MainAPI() {
 
         // JAV Info
         tryParseJson<ResponseMovieDetails>(scriptJson)?.let {
-            val contentUrl = it.contentUrl
+            //val contentUrl = it.contentUrl
             title = it.name ?: ""
             poster = it.thumbnailUrl
             year = it.uploadDate?.take(4)?.toIntOrNull()
@@ -192,7 +192,7 @@ class JavSubProvider : MainAPI() {
                         ?.groupValues?.get(0)?.let { iframe ->
                             innerText = iframe.trim().trim('"')
                         }
-                    Jsoup.parse(innerText)?.selectFirst("iframe")?.attr("src")?.let { server ->
+                    Jsoup.parse(innerText).selectFirst("iframe")?.attr("src")?.let { server ->
                         val serverLink = server.replace("\\", "").replace("\"", "")
                         val success = extractStreamLink(serverLink, subtitleCallback, callback)
                         if (success) {
@@ -215,18 +215,16 @@ class JavSubProvider : MainAPI() {
         if (link.isNotBlank()) {
             when {
                 link.contains("watch-jav") -> {
-                    /* //TODO: Add extractor
-                    val extractor = FEmbed()
-                    extractor.domainUrl = "embedsito.com"
-                    extractor.getSafeUrl(
-                        url = link,
+                    val editedLink = link.removePrefix("https://")
+                    val idx = editedLink.indexOf('/', 0) + 1
+                    val finalLink = "https://embedsito.com/${editedLink.substring(idx)}"
+                    //Log.i(this.name, "WatchJav link => $finalLink / $link")
+                    return loadExtractor(
+                        url = finalLink,
                         referer = mainUrl,
                         subtitleCallback = subtitleCallback,
                         callback = callback
                     )
-                    return true
-                    */
-                    return false
                 }
                 else -> {
                     return loadExtractor(
