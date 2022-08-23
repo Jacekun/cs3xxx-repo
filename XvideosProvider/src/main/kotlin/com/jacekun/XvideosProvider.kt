@@ -6,13 +6,13 @@ import com.lagradost.cloudstream3.utils.*
 
 
 class XvideosProvider : MainAPI() {
-    private val globalTvType = TvType.NSFW
+    private val globalTvType = TvType.Movie
     override var mainUrl = "https://www.xvideos.com"
     override var name = "Xvideos"
     override val hasMainPage = true
     override val hasChromecastSupport = true
     override val hasDownloadSupport = true
-    override val supportedTypes = setOf(globalTvType)
+    override val supportedTypes = setOf(TvType.NSFW)
 
     override val mainPage = mainPageOf(
         Pair(mainUrl, "Main Page"),
@@ -81,7 +81,7 @@ class XvideosProvider : MainAPI() {
 
         }.toList()
     }
-    override suspend fun load(url: String): LoadResponse? {
+    override suspend fun load(url: String): LoadResponse {
         val soup = app.get(url).document
         val title = if (url.contains("channels")||url.contains("pornstars")) soup.selectFirst("html.xv-responsive.is-desktop head title")?.text() else
             soup.selectFirst(".page-title")?.text()
@@ -106,7 +106,7 @@ class XvideosProvider : MainAPI() {
                     name = title ?: "",
                     url = url,
                     apiName = this.name,
-                    type = globalTvType,
+                    type = tvType,
                     episodes = episodes,
                     posterUrl = poster,
                     plot = title,
@@ -114,7 +114,7 @@ class XvideosProvider : MainAPI() {
                     tags = tags,
                 )
             }
-            TvType.NSFW -> {
+            else -> {
                 MovieLoadResponse(
                     name = title ?: "",
                     url = url,
@@ -126,7 +126,6 @@ class XvideosProvider : MainAPI() {
                     tags = tags,
                 )
             }
-            else -> null
         }
     }
     override suspend fun loadLinks(

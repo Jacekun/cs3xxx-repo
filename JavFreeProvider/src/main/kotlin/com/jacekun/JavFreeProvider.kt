@@ -10,10 +10,10 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavFreeProvider : MainAPI() {
-    private val tvType = TvType.NSFW
+    private val globalTvType = TvType.Movie
     override var name = "JavFree"
     override var mainUrl = "https://javfree.sh"
-    override val supportedTypes: Set<TvType> get() = setOf(tvType)
+    override val supportedTypes: Set<TvType> get() = setOf(TvType.NSFW)
     override val hasDownloadSupport: Boolean get() = false
     override val hasMainPage: Boolean get() = true
     override val hasQuickSearch: Boolean get() = false
@@ -65,7 +65,7 @@ class JavFreeProvider : MainAPI() {
                             name = name,
                             url = link,
                             apiName = this.name,
-                            type = tvType,
+                            type = globalTvType,
                             posterUrl = image,
                             year = year
                         )
@@ -103,7 +103,7 @@ class JavFreeProvider : MainAPI() {
                 name = title,
                 url = url,
                 apiName = this.name,
-                type = tvType,
+                type = globalTvType,
                 posterUrl = image,
                 year = year
             )
@@ -138,7 +138,7 @@ class JavFreeProvider : MainAPI() {
             name = title,
             url = url,
             apiName = this.name,
-            type = tvType,
+            type = globalTvType,
             dataUrl = streamUrl,
             posterUrl = poster,
             year = year,
