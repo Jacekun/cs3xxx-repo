@@ -32,6 +32,7 @@ class JavHD : MainAPI() {
         //Log.i(this.name, "Result => (mainbody) ${mainbody}")
 
         var count = 0
+        //Log.i(this.name, "Titles => ${mainbody.select("div.section-header")}")
         val titles = mainbody.select("div.section-header").mapNotNull {
             val text = it?.text() ?: return@mapNotNull null
             count++
@@ -39,9 +40,9 @@ class JavHD : MainAPI() {
         }
 
         //Log.i(this.name, "Result => (titles) ${titles}")
-        val entries = mainbody.select("div#video-widget-3016")
         count = 0
-        entries.forEach { it2 ->
+        //Log.i(this.name, "Body => ${mainbody.select("div#video-widget-3016")}")
+        mainbody.select("div#video-widget-3016").forEach { it2 ->
             count++
             // Fetch row title
             val pair = titles.filter { aa -> aa.first == count }
@@ -50,11 +51,24 @@ class JavHD : MainAPI() {
             val inner = it2.select("div.col-md-3.col-sm-6.col-xs-6.item.responsive-height.post")
             val elements: List<SearchResponse> = inner.mapNotNull {
                 // Inner element
+                //Log.i(this.name, "Result => ${it.selectFirst("div.item-img > a")}")
                 val aa = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
                 // Video details
                 val link = aa.attr("href") ?: return@mapNotNull null
                 val name = aa.attr("title").cleanTitle()
-                val image = aa.select("img").attr("src")
+                var image = aa.select("img").attr("src")
+                //Get another image from 'srcset' element
+                if (image.isNullOrBlank()) {
+                    run breaking@ {
+                        aa.select("img").attr("srcset").split("\\s+".toRegex())
+                        .forEach { imgItem ->
+                            image = imgItem.trim()
+                            if (image.startsWith("https")) {
+                                return@breaking
+                            }
+                        }
+                    }
+                }
                 val year = null
                 //Log.i(this.name, "Result => (link) ${link}")
                 //Log.i(this.name, "Result => (image) ${image}")
@@ -81,7 +95,7 @@ class JavHD : MainAPI() {
             }
         }
         if (homePageList.isNotEmpty()) {
-            HomePageResponse(
+            return HomePageResponse(
                 items = homePageList,
                 hasNext = homePageList.any{ it.list.isNotEmpty() }
             )
