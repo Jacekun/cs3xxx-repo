@@ -235,8 +235,11 @@ class JavHD : MainAPI() {
                 count++
                 when {
                     vid.startsWith("https://javhdfree.icu") -> {
-                        FEmbed().getSafeUrl(
-                            url = vid,
+                        val editedLink = vid.removePrefix("https://")
+                        val idx = editedLink.indexOf('/', 0) + 1
+                        val finalLink = "https://embedsito.com/${editedLink.substring(idx)}"
+                        loadExtractor(
+                            url = finalLink,
                             referer = vid,
                             subtitleCallback = subtitleCallback,
                             callback = callback
@@ -244,7 +247,7 @@ class JavHD : MainAPI() {
                     }
                     vid.startsWith("https://viewsb.com") -> {
                         val url = vid.replace("viewsb.com", "watchsb.com")
-                        WatchSB().getSafeUrl(
+                        loadExtractor(
                             url = url,
                             referer = url,
                             subtitleCallback = subtitleCallback,
