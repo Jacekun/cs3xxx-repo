@@ -5,6 +5,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.lagradost.cloudstream3.mvvm.logError
 import java.text.SimpleDateFormat
 import java.util.*
 import khttp.structures.cookie.CookieJar
@@ -90,6 +91,7 @@ class Hahomoe : MainAPI() {
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                logError(e)
             }
         }
         if (items.size <= 0) throw ErrorLoadingException()
