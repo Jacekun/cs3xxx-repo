@@ -3,6 +3,7 @@ package com.jacekun
 import android.util.Log
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.extractors.XStreamCdn
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -215,17 +216,16 @@ class OpJav : MainAPI() {
             Log.i(this.name, "Result => (url) $url")
             when {
                 url.contains("opmovie.xyz") -> {
-                    val ext = extractorApis.find { it.mainUrl.contains("embedsito.com") }//XStreamCdn()
-                    if (ext != null) {
-                        //ext.domainUrl = "opmovie.xyz"
-                        ext.getSafeUrl(
+                    XStreamCdn().let {
+                        it.domainUrl = "opmovie.xyz"
+                        it.getSafeUrl(
                             url = url,
                             referer = url,
                             subtitleCallback = subtitleCallback,
                             callback = callback
                         )
-                        count++
                     }
+                    count++
                 }
                 else -> {
                     val success = loadExtractor(
