@@ -6,7 +6,7 @@ cloudstream {
     // All of these properties are optional, you can safely remove them
 
     description = "The best free NSFW site"
-    authors = listOf("Jace")
+    authors = listOf("Stormunblessed", "Jace")
 
     /**
     * Status int as the following:
