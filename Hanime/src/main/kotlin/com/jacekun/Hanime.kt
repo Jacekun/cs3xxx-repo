@@ -19,7 +19,7 @@ import kotlin.collections.ArrayList
 
 class Hanime : MainAPI() {
     private val globalTvType = TvType.NSFW
-    private val interceptor = CloudflareKiller()
+    //private val interceptor = CloudflareKiller()
     private var globalHeaders = mapOf<String, String>()
     private val DEV = "DevDebug"
 

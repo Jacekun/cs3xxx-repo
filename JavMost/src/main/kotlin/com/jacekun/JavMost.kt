@@ -8,9 +8,9 @@ import org.jsoup.Jsoup
 
 class JavMost : MainAPI() {
     private val DEV = "DevDebug"
-    private val globaltvType = TvType.Movie
+    private val globaltvType = TvType.NSFW
 
-    override var name = "JAVMost.com"
+    override var name = "JavMost"
     override var mainUrl = "https://www5.javmost.com"
     override val supportedTypes = setOf(TvType.NSFW)
     override val hasDownloadSupport = false

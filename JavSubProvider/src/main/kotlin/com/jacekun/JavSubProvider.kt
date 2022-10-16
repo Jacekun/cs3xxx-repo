@@ -18,7 +18,7 @@ class JavSubProvider : MainAPI() {
     override val hasQuickSearch: Boolean get() = false
 
     private val prefixTag = "dummyTag" //For use on stream links to differentiate links
-    private val globalTvType = TvType.Movie
+    private val globalTvType = TvType.NSFW
 
     data class ResponseMovieDetails(
         @JsonProperty("name") val name: String?,

@@ -10,26 +10,13 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavFreeProvider : MainAPI() {
-    private val globalTvType = TvType.Movie
+    private val globalTvType = TvType.NSFW
     override var name = "JavFree"
     override var mainUrl = "https://javfree.sh"
-    override val supportedTypes: Set<TvType> get() = setOf(TvType.NSFW)
-    override val hasDownloadSupport: Boolean get() = false
-    override val hasMainPage: Boolean get() = true
-    override val hasQuickSearch: Boolean get() = false
-
-    private data class ResponseJson(
-        @JsonProperty("list") val list: List<ResponseData>?
-    )
-    private data class ResponseData(
-        @JsonProperty("url") val file: String?,
-        @JsonProperty("server") val server: String?,
-        @JsonProperty("active") val active: Int?
-    )
-
-    private fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free")
-        .removeSuffix("HD Free Online on JAVFree.SH").trim()
-        .removePrefix("Watch JAV").trim()
+    override val supportedTypes = setOf(TvType.NSFW)
+    override val hasDownloadSupport = false
+    override val hasMainPage = true
+    override val hasQuickSearch = false
 
     override suspend fun getMainPage(
         page: Int,
@@ -181,4 +168,17 @@ class JavFreeProvider : MainAPI() {
         }
         return false
     }
+
+    private data class ResponseJson(
+        @JsonProperty("list") val list: List<ResponseData>?
+    )
+    private data class ResponseData(
+        @JsonProperty("url") val file: String?,
+        @JsonProperty("server") val server: String?,
+        @JsonProperty("active") val active: Int?
+    )
+
+    private fun String.cleanText() : String = this.trim().removePrefix("Watch JAV Free")
+        .removeSuffix("HD Free Online on JAVFree.SH").trim()
+        .removePrefix("Watch JAV").trim()
 }

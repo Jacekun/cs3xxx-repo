@@ -30,9 +30,9 @@ class Hahomoe : MainAPI() {
     private val globalTvType = TvType.NSFW
     override var mainUrl = "https://haho.moe"
     override var name = "Haho moe"
-    override val hasQuickSearch: Boolean get() = false
-    override val hasMainPage: Boolean get() = true
-    override val supportedTypes: Set<TvType> get() = setOf(TvType.NSFW)
+    override val hasQuickSearch = false
+    override val hasMainPage = true
+    override val supportedTypes = setOf(TvType.NSFW)
 
     private fun loadToken(): Boolean {
         return try {

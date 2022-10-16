@@ -8,7 +8,7 @@ import org.jsoup.Jsoup
 
 class JavGuru : MainAPI() {
     private val DEV = "DevDebug"
-    private val globaltvType = TvType.Movie
+    private val globaltvType = TvType.NSFW
 
     override var name = "Jav Guru"
     override var mainUrl = "https://jav.guru"

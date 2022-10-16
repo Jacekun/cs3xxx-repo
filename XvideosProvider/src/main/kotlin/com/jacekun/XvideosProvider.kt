@@ -6,7 +6,7 @@ import com.lagradost.cloudstream3.utils.*
 
 
 class XvideosProvider : MainAPI() {
-    private val globalTvType = TvType.Movie
+    private val globalTvType = TvType.NSFW
     override var mainUrl = "https://www.xvideos.com"
     override var name = "Xvideos"
     override val hasMainPage = true
@@ -106,7 +106,7 @@ class XvideosProvider : MainAPI() {
                     name = title ?: "",
                     url = url,
                     apiName = this.name,
-                    type = tvType,
+                    type = globalTvType,
                     episodes = episodes,
                     posterUrl = poster,
                     plot = title,
@@ -119,7 +119,7 @@ class XvideosProvider : MainAPI() {
                     name = title ?: "",
                     url = url,
                     apiName = this.name,
-                    type = tvType,
+                    type = globalTvType,
                     dataUrl = url,
                     posterUrl = poster,
                     plot = title,

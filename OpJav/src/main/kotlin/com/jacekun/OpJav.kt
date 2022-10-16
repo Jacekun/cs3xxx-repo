@@ -12,7 +12,7 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class OpJav : MainAPI() {
-    private val globalTvType = TvType.Movie
+    private val globalTvType = TvType.NSFW
     override var name = "OpJAV"
     override var mainUrl = "https://opjav.com"
     override val supportedTypes = setOf(TvType.NSFW)

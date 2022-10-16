@@ -9,25 +9,13 @@ import com.lagradost.cloudstream3.utils.getQualityFromName
 import org.jsoup.select.Elements
 
 class HentaiHaven : MainAPI() {
-    private val globalTvType = TvType.TvSeries
+    private val globalTvType = TvType.NSFW
     override var name = "Hentai Haven"
     override var mainUrl = "https://hentaihaven.xxx"
     override val supportedTypes = setOf(TvType.NSFW)
     override val hasDownloadSupport = false
     override val hasMainPage= true
     override val hasQuickSearch = false
-
-    private data class ResponseJson(
-        @JsonProperty("data") val data: ResponseData?
-    )
-    private data class ResponseData(
-        @JsonProperty("sources") val sources: List<ResponseSources>? = listOf()
-    )
-    private data class ResponseSources(
-        @JsonProperty("src") val src: String?,
-        @JsonProperty("type") val type: String?,
-        @JsonProperty("label") val label: String?
-    )
 
     override suspend fun getMainPage(
         page: Int,
@@ -221,4 +209,16 @@ class HentaiHaven : MainAPI() {
             )
         } ?: listOf()
     }
+
+    private data class ResponseJson(
+        @JsonProperty("data") val data: ResponseData?
+    )
+    private data class ResponseData(
+        @JsonProperty("sources") val sources: List<ResponseSources>? = listOf()
+    )
+    private data class ResponseSources(
+        @JsonProperty("src") val src: String?,
+        @JsonProperty("type") val type: String?,
+        @JsonProperty("label") val label: String?
+    )
 }

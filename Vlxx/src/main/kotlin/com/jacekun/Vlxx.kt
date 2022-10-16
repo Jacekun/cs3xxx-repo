@@ -14,7 +14,7 @@ import com.lagradost.nicehttp.NiceResponse
 
 class Vlxx : MainAPI() {
     private val DEV = "DevDebug"
-    private val globaltvType = TvType.Movie
+    private val globaltvType = TvType.NSFW
 
     override var name = "Vlxx"
     override var mainUrl = "https://vlxx.sex"

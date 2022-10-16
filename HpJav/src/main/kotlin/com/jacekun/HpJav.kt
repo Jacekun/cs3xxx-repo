@@ -8,7 +8,7 @@ import org.jsoup.Jsoup
 
 class HpJav : MainAPI() {
     private val DEV = "DevDebug"
-    private val globaltvType = TvType.Movie
+    private val globaltvType = TvType.NSFW
 
     override var name = "HpJav TV"
     override var mainUrl = "https://hpjav.tv"

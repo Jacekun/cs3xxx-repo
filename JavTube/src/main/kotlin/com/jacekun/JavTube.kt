@@ -13,7 +13,7 @@ import org.jsoup.Jsoup
 
 class JavTube : MainAPI() {
     private val DEV = "DevDebug"
-    private val globaltvType = TvType.Movie
+    private val globaltvType = TvType.NSFW
     override var name = "JavTube"
     override var mainUrl = "https://javtube.watch"
     override val supportedTypes = setOf(TvType.NSFW)

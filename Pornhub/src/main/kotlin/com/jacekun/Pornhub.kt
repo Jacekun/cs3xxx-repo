@@ -9,7 +9,7 @@ import com.lagradost.cloudstream3.utils.*
 import org.jsoup.nodes.Element
 
 class Pornhub : MainAPI() {
-    private val globalTvType = TvType.Movie
+    private val globalTvType = TvType.NSFW
 
     override var mainUrl = "https://www.pornhub.com"
     override var name = "Pornhub"
