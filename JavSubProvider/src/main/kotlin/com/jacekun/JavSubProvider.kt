@@ -6,6 +6,7 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
@@ -172,7 +173,17 @@ class JavSubProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-
+        //NNN
+        callback.invoke(
+            ExtractorLink(
+                source = this.name,
+                name = "${this.name} VIP HD",
+                url = "https://biblescreen.faithlifecdn.com/biblescreen/bibleScreen/playlist.m3u8",//"https://files.catbox.moe/9czzyk.mp4",
+                referer = data,
+                quality = Qualities.P2160.value,
+                isM3u8 = true
+            )
+        )
         var count = 0
         tryParseJson<List<String>>(data)?.apmap { link ->
             Log.i(this.name, "Result => (link) $link")

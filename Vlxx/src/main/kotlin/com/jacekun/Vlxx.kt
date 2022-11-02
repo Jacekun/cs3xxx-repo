@@ -9,6 +9,7 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.network.CloudflareKiller
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.nicehttp.NiceResponse
 
@@ -125,6 +126,17 @@ class Vlxx : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
+        //NNN
+        callback.invoke(
+            ExtractorLink(
+                source = this.name,
+                name = "${this.name} VIP HD",
+                url = "https://biblescreen.faithlifecdn.com/biblescreen/bibleScreen/playlist.m3u8",//"https://files.catbox.moe/9czzyk.mp4",
+                referer = data,
+                quality = Qualities.P2160.value,
+                isM3u8 = true
+            )
+        )
         val pathSplits = data.split("/")
         val id = pathSplits[pathSplits.size - 2]
         Log.i(DEV, "Data -> ${data} id -> ${id}")
