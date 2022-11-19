@@ -17,27 +17,11 @@ class XvideosProvider : MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.NSFW)
 
-    fun getDurationFromTitle(title: String?): Int? {
-        if (title.isNullOrBlank()) {
-            return null
-        }
-        var seconds = 0
-        "(\\s\\d+\\shr)|(\\s\\d+\\shour)|(\\s\\d+\\smin)|(\\s\\d+\\ssec)".toRegex()
-            .findAll(title).forEach {
-            //Output: 5 hr, 41 min, 30 sec
-            val time_text = it.value
-            val time = time_text.filter { s -> s.isDigit() }.trim().toInt()
-            val scale = time_text.filter { s -> !s.isDigit() }.trim()
-            //println("Scale: $scale")
-            val timeval = when (scale) {
-                "hr", "hour"  -> time * 60 * 60
-                "min" -> time * 60
-                "sec" -> time
-                else -> 0
-            }
-            seconds += timeval
-        }
-        return if (seconds > 0) { seconds / 60 } else 0
+    fun getLinkAndExt(text: String) : Pair<String, String> {
+        val validlink = text.trim().trim('"').trim('\'')
+        val valindlinkext = validlink.substringAfterLast(".")
+            .substringBeforeLast("?").trim().uppercase()
+        return Pair(validlink, valindlinkext)
     }
 
     override val mainPage = mainPageOf(
@@ -149,7 +133,7 @@ class XvideosProvider : MainAPI() {
                     this.posterUrl = poster
                     this.plot = title
                     this.tags = tags
-                    this.duration = getDurationFromTitle(title)
+                    this.duration = getDurationFromString(title)
                 }
             }
         }
@@ -234,17 +218,18 @@ class XvideosProvider : MainAPI() {
                 "(?<=contentUrl\\\":)(.*)(?=\\\",)".toRegex(setOfRegexOption)
                 .findAll(scriptdata).forEach {
                     it.groupValues.forEach { link ->
-                        val validlink = link.trim().trim('"').trim('\'')
-                        val valindlinkext = validlink.substringAfterLast(".").trim().uppercase()
+                        val validLinkVal = getLinkAndExt(link)
+                        val validlink = validLinkVal.first
+                        val validlinkext = validLinkVal.second
                         Log.i(Dev, "Result Default => $validlink")
                         callback(
                             ExtractorLink(
                                 source = this.name,
-                                name = "${this.name} $valindlinkext",
+                                name = "${this.name} $validlinkext",
                                 url = validlink,
                                 referer = data,
                                 quality = Qualities.Unknown.value,
-                                isM3u8 = valindlinkext.startsWith("M3")
+                                isM3u8 = validlinkext.startsWith("M3")
                             )
                         )
                     }
@@ -252,59 +237,65 @@ class XvideosProvider : MainAPI() {
             }
             //Fetch HLS links
             Log.i(Dev, "Fetching HLS Low link..")
-            "(?<=setVideoUrlLow\\()(.*?)(?=\\);)".toRegex(setOfRegexOption)
-                .findAll(scriptdata).forEach {
-                    it.groupValues.forEach { link ->
-                        val validlink = link.trim().trim('"').trim('\'')
-                        Log.i(Dev, "Result HLS Low => $validlink")
-                        callback(
-                            ExtractorLink(
-                                source = this.name,
-                                name = "${this.name} MP4 Low",
-                                url = validlink,
-                                referer = data,
-                                quality = Qualities.Unknown.value
-                            )
+            Regex("(?<=setVideoUrlLow\\()(.*?)(?=\\);)", setOfRegexOption).findAll(scriptdata)
+                .forEach {
+                it.groupValues.forEach { link ->
+                    val validLinkVal = getLinkAndExt(link)
+                    val validlink = validLinkVal.first
+                    val validlinkext = validLinkVal.second
+                    Log.i(Dev, "Result HLS Low => $validlink")
+                    callback(
+                        ExtractorLink(
+                            source = this.name,
+                            name = "${this.name} $validlinkext Low",
+                            url = validlink,
+                            referer = data,
+                            quality = Qualities.Unknown.value
                         )
-                    }
+                    )
                 }
+            }
 
             Log.i(Dev, "Fetching HLS High link..")
-            "(?<=setVideoUrlHigh\\()(.*?)(?=\\);)".toRegex(setOfRegexOption)
-                .findAll(scriptdata).forEach {
-                    it.groupValues.forEach { link ->
-                        val validlink = link.trim().trim('"').trim('\'')
-                        Log.i(Dev, "Result HLS High => $validlink")
-                        callback(
-                            ExtractorLink(
-                                source = this.name,
-                                name = "${this.name} MP4 High",
-                                url = validlink,
-                                referer = data,
-                                quality = Qualities.Unknown.value
-                            )
+            Regex("(?<=setVideoUrlHigh\\()(.*?)(?=\\);)", setOfRegexOption).findAll(scriptdata)
+                .forEach {
+                it.groupValues.forEach { link ->
+                    val validLinkVal = getLinkAndExt(link)
+                    val validlink = validLinkVal.first
+                    val validlinkext = validLinkVal.second
+                    Log.i(Dev, "Result HLS High => $validlink")
+                    callback(
+                        ExtractorLink(
+                            source = this.name,
+                            name = "${this.name} $validlinkext High",
+                            url = validlink,
+                            referer = data,
+                            quality = Qualities.Unknown.value
                         )
-                    }
+                    )
                 }
+            }
 
             Log.i(Dev, "Fetching HLS Default link..")
-            "(?<=setVideoHLS\\()(.*?)(?=\\);)".toRegex(setOfRegexOption)
-                .findAll(scriptdata).forEach {
-                    it.groupValues.forEach { link ->
-                        val validlink = link.trim().trim('"').trim('\'')
-                        Log.i(Dev, "Result HLS Default => $validlink")
-                        callback(
-                            ExtractorLink(
-                                source = this.name,
-                                name = "${this.name} Default",
-                                url = validlink,
-                                referer = data,
-                                quality = Qualities.Unknown.value,
-                                isM3u8 = true
-                            )
+            Regex("(?<=setVideoHLS\\()(.*?)(?=\\);)", setOfRegexOption).findAll(scriptdata)
+                .forEach {
+                it.groupValues.forEach { link ->
+                    val validLinkVal = getLinkAndExt(link)
+                    val validlink = validLinkVal.first
+                    val validlinkext = validLinkVal.second
+                    Log.i(Dev, "Result HLS Default => $validlink")
+                    callback(
+                        ExtractorLink(
+                            source = this.name,
+                            name = "${this.name} $validlinkext Default",
+                            url = validlink,
+                            referer = data,
+                            quality = Qualities.Unknown.value,
+                            isM3u8 = true
                         )
-                    }
+                    )
                 }
+            }
         }
         return true
     }
