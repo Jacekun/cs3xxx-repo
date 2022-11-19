@@ -17,6 +17,29 @@ class XvideosProvider : MainAPI() {
     override val hasDownloadSupport = true
     override val supportedTypes = setOf(TvType.NSFW)
 
+    fun getDurationFromTitle(title: String?): Int? {
+        if (title.isNullOrBlank()) {
+            return null
+        }
+        var seconds = 0
+        "(\\s\\d+\\shr)|(\\s\\d+\\shour)|(\\s\\d+\\smin)|(\\s\\d+\\ssec)".toRegex()
+            .findAll(title).forEach {
+            //Output: 5 hr, 41 min, 30 sec
+            val time_text = it.value
+            val time = time_text.filter { s -> s.isDigit() }.trim().toInt()
+            val scale = time_text.filter { s -> !s.isDigit() }.trim()
+            //println("Scale: $scale")
+            val timeval = when (scale) {
+                "hr", "hour"  -> time * 60 * 60
+                "min" -> time * 60
+                "sec" -> time
+                else -> 0
+            }
+            seconds += timeval
+        }
+        return if (seconds > 0) { seconds / 60 } else 0
+    }
+
     override val mainPage = mainPageOf(
         Pair(mainUrl, "Main Page"),
         Pair("$mainUrl/new/", "New")
@@ -35,14 +58,13 @@ class XvideosProvider : MainAPI() {
                     val title = it.selectFirst("p.title a")?.text() ?: ""
                     val link = fixUrlNull(it.selectFirst("div.thumb a")?.attr("href")) ?: return@mapNotNull null
                     val image = it.selectFirst("div.thumb a img")?.attr("data-src")
-                    MovieSearchResponse(
+                    newMovieSearchResponse(
                         name = title,
                         url = link,
-                        apiName = this.name,
                         type = globalTvType,
-                        posterUrl = image,
-                        year = null
-                    )
+                    ) {
+                        this.posterUrl = image
+                    }
                 }
                 if (home.isNotEmpty()) {
                     return newHomePageResponse(
@@ -74,13 +96,13 @@ class XvideosProvider : MainAPI() {
             val href = fixUrlNull(it.selectFirst("div.thumb a")?.attr("href")) ?: return@mapNotNull null
             val image = if (href.contains("channels") || href.contains("pornstars")) null else it.selectFirst("div.thumb-inside a img")?.attr("data-src")
             val finaltitle = if (href.contains("channels") || href.contains("pornstars")) "" else title
-            MovieSearchResponse(
+            newMovieSearchResponse(
                 name = finaltitle,
                 url = href,
-                apiName = this.name,
                 type = globalTvType,
-                posterUrl = image
-            )
+            ) {
+                this.posterUrl = image
+            }
 
         }.toList()
     }
@@ -118,16 +140,17 @@ class XvideosProvider : MainAPI() {
                 )
             }
             else -> {
-                MovieLoadResponse(
+                newMovieLoadResponse(
                     name = title ?: "",
                     url = url,
-                    apiName = this.name,
                     type = globalTvType,
                     dataUrl = url,
-                    posterUrl = poster,
-                    plot = title,
-                    tags = tags,
-                )
+                ) {
+                    this.posterUrl = poster
+                    this.plot = title
+                    this.tags = tags
+                    this.duration = getDurationFromTitle(title)
+                }
             }
         }
     }
