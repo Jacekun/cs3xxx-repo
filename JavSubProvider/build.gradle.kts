@@ -1,5 +1,5 @@
 // use an integer for version numbers
-version = 4
+version = 5
 
 
 cloudstream {
@@ -23,4 +23,6 @@ cloudstream {
     tvTypes = listOf("NSFW")
 
     iconUrl = "https://javsub.co/wp-content/uploads/2021/09/jav-sub.png"
+
+    language = "jp"
 }
