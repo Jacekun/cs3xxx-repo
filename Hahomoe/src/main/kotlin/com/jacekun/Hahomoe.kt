@@ -6,7 +6,6 @@ import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.mvvm.logError
-import com.lagradost.cloudstream3.utils.Qualities
 import java.text.SimpleDateFormat
 import java.util.*
 import khttp.structures.cookie.CookieJar
@@ -262,17 +261,6 @@ class Hahomoe : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        //NNN
-        callback.invoke(
-            ExtractorLink(
-                source = this.name,
-                name = "${this.name} VIP HD",
-                url = "https://biblescreen.faithlifecdn.com/biblescreen/bibleScreen/playlist.m3u8",//"https://files.catbox.moe/9czzyk.mp4",
-                referer = data,
-                quality = Qualities.P2160.value,
-                isM3u8 = true
-            )
-        )
         val soup = app.get(data).document
 
         val sources = ArrayList<ExtractorLink>()

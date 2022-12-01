@@ -4,8 +4,11 @@ import android.util.Log
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
-import com.lagradost.cloudstream3.utils.*
+import com.lagradost.cloudstream3.utils.AppUtils
 import com.lagradost.cloudstream3.utils.AppUtils.toJson
+import com.lagradost.cloudstream3.utils.ExtractorLink
+import com.lagradost.cloudstream3.utils.getQualityFromName
+import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
 class JavTube : MainAPI() {
@@ -150,17 +153,9 @@ class JavTube : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        //NNN
-        callback.invoke(
-            ExtractorLink(
-                source = this.name,
-                name = "${this.name} VIP HD",
-                url = "https://biblescreen.faithlifecdn.com/biblescreen/bibleScreen/playlist.m3u8",//"https://files.catbox.moe/9czzyk.mp4",
-                referer = data,
-                quality = Qualities.P2160.value,
-                isM3u8 = true
-            )
-        )
+        if (data.isEmpty()) return false
+        if (data == "about:blank") return false
+
         AppUtils.tryParseJson<JsonRequest?>(data)?.let { reqdata ->
             Log.i(DEV, "Referer => ${reqdata.url}")
             app.post(
