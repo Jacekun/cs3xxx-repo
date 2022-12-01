@@ -24,5 +24,5 @@ cloudstream {
 
     iconUrl = "https://javsub.co/wp-content/uploads/2021/09/jav-sub.png"
 
-    language = "jp"
+    language = "en"
 }
