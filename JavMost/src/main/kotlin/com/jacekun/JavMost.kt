@@ -4,7 +4,6 @@ import com.lagradost.cloudstream3.MainAPI
 import com.lagradost.cloudstream3.TvType
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
-import org.jsoup.Jsoup
 
 class JavMost : MainAPI() {
     private val DEV = "DevDebug"
@@ -21,8 +20,7 @@ class JavMost : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val html = app.get(mainUrl).text
-        val document = Jsoup.parse(html)
+        val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()
 
         val mainbody = document.getElementsByTag("body")
@@ -37,12 +35,13 @@ class JavMost : MainAPI() {
             val link = linkA?.firstOrNull()?.attr("href") ?: ""
             val name = listOfNotNull(linkA?.firstOrNull()?.text(), linkA?.getOrNull(1)?.text()).joinToString(" ")
             //Log.i(DEV, "Result => (name and link) ${name} / ${link}")
-            var image = inner?.select("center > a > img")?.attr("data-src")
-            if (image == null) {
-                image = inner?.select("center > a > img")?.attr("src")
-            } else {
-                if (image == "http") {
-                    image = inner?.select("center > a > img")?.attr("src")
+            val image = inner?.select("center > a > img")?.attr("data-src").orEmpty().ifBlank {
+                inner.select("center > a > img")?.attr("src")
+            }.run {
+                if (this.equals("http")) {
+                    inner?.select("center > a > img")?.attr("src")
+                } else {
+                    this
                 }
             }
             //Log.i(DEV, "Result => (image) ${image}")
@@ -71,8 +70,7 @@ class JavMost : MainAPI() {
     }
 
     override suspend fun search(query: String): List<SearchResponse>? {
-        val html = app.get("$mainUrl/search/${query}/").text
-        val document = Jsoup.parse(html)
+        val document = app.get("$mainUrl/search/${query}/").document
         val mainbody = document.getElementsByTag("body")
             ?.select("div#page-container > div#content > div#content-update > div")
             ?.select("div.col-md-4.col-sm-6")
@@ -130,8 +128,7 @@ class JavMost : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val document = Jsoup.parse(response)
+        val document = app.get(url).document
         //Log.i(DEV, "Url => ${url}")
         val body = document.getElementsByTag("head")
 

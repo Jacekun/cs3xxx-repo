@@ -150,6 +150,18 @@ class JavSubProvider : MainAPI() {
             //playerIframes.add("$prefixTag$contentUrl")
             //}
             //Log.i(this.name, "Result => (contentUrl) $contentUrl")
+            Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")
+
+            return MovieLoadResponse(
+                name = title,
+                url = url,
+                apiName = this.name,
+                type = globalTvType,
+                dataUrl = playerIframes.toJson(),
+                posterUrl = poster,
+                year = year,
+                plot = descript
+            )
         }
 
         Log.i(this.name, "Result => (playerIframes) ${playerIframes.toJson()}")

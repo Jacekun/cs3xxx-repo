@@ -179,8 +179,8 @@ class OpJav : MainAPI() {
                     )
                     app.post("$mainUrl/ajax", headers = ajaxHead, data = ajaxData)
                         .document.select("iframe").forEach { iframe ->
-                        val serverLink = iframe?.attr("src")?.trim()
-                        if (!serverLink.isNullOrBlank()) {
+                        val serverLink = iframe?.attr("src")?.trim().orEmpty()
+                        if (serverLink.isNotBlank()) {
                             watchlink.add(serverLink)
                             Log.i(this.name, "Result => (serverLink) $serverLink")
                         }

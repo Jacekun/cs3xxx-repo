@@ -7,7 +7,6 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
-import org.jsoup.Jsoup
 
 class JavFreeProvider : MainAPI() {
     private val globalTvType = TvType.NSFW
@@ -22,8 +21,7 @@ class JavFreeProvider : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val html = app.get(mainUrl).text
-        val document = Jsoup.parse(html)
+        val document = app.get(mainUrl).document
         val all = ArrayList<HomePageList>()
 
         document.getElementsByTag("body").select("div#page")
@@ -42,9 +40,9 @@ class JavFreeProvider : MainAPI() {
                         val link = fixUrlNull(aa?.attr("href")) ?: return@mapNotNull null
                         val name = aa?.attr("title") ?: "<No Title>"
 
-                        var image = aa?.select("div")?.select("img")?.attr("data-src")
-                        if (image.isNullOrBlank()) {
-                            image = aa?.select("div")?.select("video")?.attr("poster")
+                        val image = aa?.select("div")?.select("img")?.attr("data-src")
+                            .orEmpty().ifBlank {
+                            aa?.select("div")?.select("video")?.attr("poster")
                         }
                         val year = null
 
@@ -80,11 +78,10 @@ class JavFreeProvider : MainAPI() {
             val url = fixUrlNull(aa.attr("href")) ?: return@mapNotNull null
             val title = aa.attr("title")
             val year = null
-            var image = aa.select("div.post-thumbnail.thumbs-rotation")
-                .select("img").attr("data-src")
-            if (image.isNullOrBlank()) {
-                image = aa.select("div").select("video").attr("poster").toString()
-            }
+            val image = aa.select("div.post-thumbnail.thumbs-rotation")
+                .select("img").attr("data-src").orEmpty().ifBlank {
+                    aa.select("div").select("video").attr("poster").toString()
+                }
 
             MovieSearchResponse(
                 name = title,
@@ -111,15 +108,18 @@ class JavFreeProvider : MainAPI() {
         //Log.i(this.name, "Result => (yearElem) ${yearElem}")
         val year = yearElem.text().trim().takeLast(4).toIntOrNull()
 
-        var streamUrl = body
+        val streamUrl = body
             .select("div#page > div#content > div#primary > main > article > header > div > div > div > script")
-            .toString()
-        if (streamUrl.isNotEmpty()) {
-            val startS = "<iframe src="
-            streamUrl = streamUrl.substring(streamUrl.indexOf(startS) + startS.length + 1)
-            //Log.i(this.name, "Result => (id) ${id}")
-            streamUrl = streamUrl.substring(0, streamUrl.indexOf("\""))
-        }
+            .toString().run {
+                if (this.isNotBlank()) {
+                    val startS = "<iframe src="
+                    val streamUrlClean = this.substring(this.indexOf(startS) + startS.length + 1)
+                    //Log.i(this.name, "Result => (id) ${id}")
+                    streamUrlClean.substring(0, streamUrlClean.indexOf("\""))
+                } else {
+                    ""
+                }
+            }
         //Log.i(this.name, "Result => (id) ${id}")
         return MovieLoadResponse(
             name = title,
@@ -153,7 +153,7 @@ class JavFreeProvider : MainAPI() {
                     if (linkUrl.isNotBlank()) {
                         //Log.i(this.name, "ApiError => (link url) $linkUrl")
                         loadExtractor(
-                            url= linkUrl,
+                            url = linkUrl,
                             referer = referer,
                             subtitleCallback = subtitleCallback,
                             callback = callback

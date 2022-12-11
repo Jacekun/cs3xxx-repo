@@ -4,7 +4,6 @@ import com.lagradost.cloudstream3.MainAPI
 import com.lagradost.cloudstream3.TvType
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
-import org.jsoup.Jsoup
 
 class JavGuru : MainAPI() {
     private val DEV = "DevDebug"
@@ -21,11 +20,9 @@ class JavGuru : MainAPI() {
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val html = app.get(mainUrl).text
-        val document = Jsoup.parse(html)
         val all = ArrayList<HomePageList>()
 
-        val mainbody = document.getElementsByTag("body").select("div#page")
+        val mainbody = app.get(mainUrl).document.getElementsByTag("body").select("div#page")
             .select("div#content").select("div#primary")
             .select("main")
 
@@ -44,7 +41,7 @@ class JavGuru : MainAPI() {
 
                 val imgArticle = aa?.select("img")
                 val name = imgArticle?.attr("alt") ?: "<No Title>"
-                var image = imgArticle?.attr("src") ?: ""
+                val image = imgArticle?.attr("src")
                 val year = null
 
                 MovieSearchResponse(
@@ -69,15 +66,15 @@ class JavGuru : MainAPI() {
 
     override suspend fun search(query: String): List<SearchResponse> {
         val url = "$mainUrl/?s=${query}"
-        val html = app.get(url).text
-        val document = Jsoup.parse(html).select("main.site-main").select("div.row")
 
-        return document.map {
+        return app.get(url).document
+            .select("main.site-main").select("div.row").mapNotNull {
+
             val aa = it.select("div.column").select("div.inside-article")
-                .select("div.imgg").select("a")
-            val imgrow = aa.select("img")
+                .select("div.imgg").select("a") ?: return@mapNotNull null
+            val imgrow = aa.select("img") ?: return@mapNotNull null
 
-            val href = fixUrl(aa.attr("href"))
+            val href = fixUrlNull(aa.attr("href")) ?: return@mapNotNull null
             val title = imgrow.attr("alt")
             val image = imgrow.attr("src").trim('\'')
             val year = Regex("(?<=\\/)(.[0-9]{3})(?=\\/)")
@@ -95,11 +92,8 @@ class JavGuru : MainAPI() {
     }
 
     override suspend fun load(url: String): LoadResponse {
-        val response = app.get(url).text
-        val document = Jsoup.parse(response)
-
         //Log.i(DEV, "Url => ${url}")
-        val body = document.getElementsByTag("body")
+        val body = app.get(url).document.getElementsByTag("body")
             .select("div#page")
             .select("div#content").select("div.content-area")
             .select("main").select("article")
@@ -112,8 +106,8 @@ class JavGuru : MainAPI() {
         val title = body.select("h1.titl").text()
         val descript = body.select("div.wp-content").select("p").firstOrNull()?.text()
         val streamUrl = ""
-        val year = body.select("div.infometa > div.infoleft > ul > li")
-            ?.get(1)?.text()?.takeLast(10)?.substring(0, 4)?.toIntOrNull()
+        val infometa_list = body.select("div.infometa > div.infoleft > ul > li")
+        val year = infometa_list.getOrNull(1)?.text()?.takeLast(10)?.substring(0, 4)?.toIntOrNull()
 
         return MovieLoadResponse(
             name = title,

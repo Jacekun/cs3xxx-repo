@@ -8,15 +8,16 @@ import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
 
 class JavHD : MainAPI() {
     private val globalTvType = TvType.NSFW
     override var name = "JavHD"
     override var mainUrl = "https://javhd.icu"
-    override val supportedTypes: Set<TvType> get() = setOf(TvType.NSFW)
-    override val hasDownloadSupport: Boolean get() = true
-    override val hasMainPage: Boolean get() = true
-    override val hasQuickSearch: Boolean get() = false
+    override val supportedTypes = setOf(TvType.NSFW)
+    override val hasDownloadSupport = true
+    override val hasMainPage = true
+    override val hasQuickSearch = false
 
     override val mainPage = mainPageOf(
         "$mainUrl/page/" to "Main Page",
@@ -49,41 +50,7 @@ class JavHD : MainAPI() {
             val title = if (pair.isNotEmpty()) { pair[0].second } else { "<No Name Row>" }
             // Fetch list of items and map
             val inner = it2.select("div.col-md-3.col-sm-6.col-xs-6.item.responsive-height.post")
-            val elements: List<SearchResponse> = inner.mapNotNull {
-                // Inner element
-                //Log.i(this.name, "Result => ${it.selectFirst("div.item-img > a")}")
-                val aa = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
-                // Video details
-                val link = aa.attr("href") ?: return@mapNotNull null
-                val name = aa.attr("title").cleanTitle()
-                var image = aa.select("img").attr("src")
-                //Get another image from 'srcset' element
-                if (image.isNullOrBlank()) {
-                    run breaking@ {
-                        aa.select("img").attr("srcset").split("\\s+".toRegex())
-                        .forEach { imgItem ->
-                            image = imgItem.trim()
-                            if (image.startsWith("https")) {
-                                return@breaking
-                            }
-                        }
-                    }
-                }
-                val year = null
-                //Log.i(this.name, "Result => (link) ${link}")
-                //Log.i(this.name, "Result => (image) ${image}")
-
-                MovieSearchResponse(
-                    name = name,
-                    url = link,
-                    apiName = this.name,
-                    type = globalTvType,
-                    posterUrl = image,
-                    year = year,
-                    id = null,
-                )
-            }.distinctBy { a -> a.url }
-
+            val elements = inner.toSearchResponse()
             if (elements.isNotEmpty()) {
                 homePageList.add(
                     HomePageList(
@@ -111,25 +78,7 @@ class JavHD : MainAPI() {
             .select("div.row.video-section.meta-maxwidth-230")
             .select("div.item.responsive-height.col-md-4.col-sm-6.col-xs-6")
         //Log.i(this.name, "Result => $document")
-        return document.mapNotNull {
-            val content = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
-            //Log.i(this.name, "Result => $content")
-            val link = fixUrlNull(content.attr("href")) ?: return@mapNotNull null
-            val imgContent = content.select("img")
-            val title = imgContent.attr("alt").cleanTitle()
-            val image = imgContent.attr("src").trim('\'')
-            val year = null
-            //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
-
-            MovieSearchResponse(
-                name = title,
-                url = link,
-                apiName = this.name,
-                type = globalTvType,
-                posterUrl = image,
-                year = year
-            )
-        }.distinctBy { it.url }
+        return document.toSearchResponse()
     }
 
     override suspend fun load(url: String): LoadResponse {
@@ -176,7 +125,7 @@ class JavHD : MainAPI() {
             val innerAImg = it?.select("div.item-img") ?: return@mapNotNull null
             val aName = it.select("h3 > a").text().cleanTitle()
             val aImg = innerAImg.select("img").attr("src")
-            val aUrl = innerAImg.select("a").get(0)?.attr("href") ?: return@mapNotNull null
+            val aUrl = innerAImg.select("a").firstOrNull()?.attr("href") ?: return@mapNotNull null
             MovieSearchResponse(
                 url = aUrl,
                 name = aName,
@@ -195,7 +144,7 @@ class JavHD : MainAPI() {
             Log.i(this.name, "Result => (vidlink) $vidlink")
 
             val sceneCount = innerA.text().toIntOrNull()
-            val viddoc = app.get(vidlink).document.getElementsByTag("body").get(0)
+            val viddoc = app.get(vidlink).document.getElementsByTag("body").firstOrNull()
             val streamEpLink = viddoc?.getValidLinks()?.removeInvalidLinks() ?: ""
             Episode(
                 name = "Scene $sceneCount",
@@ -293,5 +242,37 @@ class JavHD : MainAPI() {
 
     private fun String.cleanTitle(): String =
         this.trim().removePrefix(prefix).trim()
+
+    private fun Elements.toSearchResponse(): List<SearchResponse> =
+        this.mapNotNull {
+            val content = it.selectFirst("div.item-img > a") ?: return@mapNotNull null
+            //Log.i(this.name, "Result => $content")
+            // Video details
+            val link = fixUrlNull(content.attr("href")) ?: return@mapNotNull null
+            val imgContent = content.select("img")
+            val title = content.attr("title").ifBlank {
+                imgContent.attr("alt")
+            }.cleanTitle()
+            val image = imgContent.attr("src").trim('\'').ifBlank {
+                //Get another image from 'srcset' element
+                content.select("img").attr("srcset")
+                    .split("\\s+".toRegex())
+                    .firstOrNull { imgItem ->
+                        imgItem.trim().startsWith("https")
+                    }
+            }
+            val year = null
+            //Log.i(this.name, "Result => Title: ${title}, Image: ${image}")
+
+            MovieSearchResponse(
+                name = title,
+                url = link,
+                apiName = this@JavHD.name,
+                type = globalTvType,
+                posterUrl = image,
+                year = year,
+                id = null
+            )
+        }.distinctBy { it.url }
 
 }

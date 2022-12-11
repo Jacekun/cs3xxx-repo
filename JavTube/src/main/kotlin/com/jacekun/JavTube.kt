@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.AppUtils
-import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.getQualityFromName
 import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.Jsoup
 
@@ -174,8 +172,7 @@ class JavTube : MainAPI() {
             ).let { postreq ->
                 Log.i(DEV, "Post => (${postreq.code}) ${postreq.text}")
 
-                val doc = Jsoup.parse(postreq.text)
-                val src = doc.selectFirst("iframe")?.attr("src") ?: ""
+                val src = Jsoup.parse(postreq.text).selectFirst("iframe")?.attr("src") ?: ""
                 Log.i(DEV, "Post Url => $src")
 
                 val id = src.trimEnd('/').split("/").last()
