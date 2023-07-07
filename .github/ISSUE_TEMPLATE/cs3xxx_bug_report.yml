@@ -1,7 +1,7 @@
 
 
-name: App bug report
-description: Report any bugs or errors found on App.
+name: Provider bug
+description: Report any bugs or errors on providers in this repo.
 labels: bug
 title: "[Bug] ChangeThisTitle"
 body:
@@ -13,12 +13,20 @@ body:
       options:
         - label: It **is not** a duplicate issue.
           required: true
-        - label: It **does not** exist on main CloudStream-3 Issues.
+        - label: It exist on this repo.
           required: true
-        - label: If provider bug, **it is exclusively** on this Fork.
+        - label: I have checked the site and it works, but not on the app.
           required: true
-        - label: If related to a provider, I have checked the site and it works, but not the app.
-          required: true
+          
+  - type: textarea
+    id: ver-provider
+    attributes:
+      label: Name and Url of provider
+      description: |
+        Specify the provider name and url. Also, provide the link of video you are trying to view.
+      placeholder: ProviderName | Url
+    validations:
+      required: true
 
   - type: textarea
     id: bug-desc
@@ -54,7 +62,7 @@ body:
           2. Click on '....'
           3. See error
     validations:
-      required: true
+      required: false
 
   - type: input
     id: ver-android
@@ -71,18 +79,7 @@ body:
     attributes:
       label: Cloudstream version
       description: |
-        You can find your Cloudstream version in **Settings** -> **Check for Update**.
-      placeholder: 2.9.22
-    validations:
-      required: true
-
-  - type: textarea
-    id: ver-provider
-    attributes:
-      label: Name and Url of provider
-      description: |
-        If bug is related to provider, specify what provider. Also provide link of not working on App.
-        If not provider-related, input "N/A" / "-" / etc..
-      placeholder: JavHD
+        You can find your Cloudstream version in **Settings** -> **Check for Update**. Include the commit version.
+      placeholder: 4.0.0 abcdef
     validations:
       required: true
