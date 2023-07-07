@@ -17,6 +17,8 @@ body:
           required: true
         - label: I have checked the site and it works, but not on the app.
           required: true
+        - label: It does not say **'coming soon'** when viewed in the app.
+          required: true
           
   - type: textarea
     id: ver-provider
