@@ -1,7 +1,7 @@
 name: Provider request
-description: Request to add new provider website to App.
+description: Request to add new provider.
 labels: provider
-title: "[Provider] ChangeThisTitle"
+title: "[Request] ChangeThisTitle"
 body:
   - type: checkboxes
     id: guidelines
@@ -10,8 +10,6 @@ body:
       description: Make sure all the following are correct.
       options:
         - label: It **is not** a duplicate issue.
-          required: true
-        - label: It **does not** exist on main Cloudstream-3 Issues.
           required: true
         - label: It **is exclusively** an adult site.
           required: true
