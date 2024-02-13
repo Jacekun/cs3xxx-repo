@@ -1,12 +1,12 @@
 // use an integer for version numbers
-version = 6
+version = 5
 
 
 cloudstream {
     // All of these properties are optional, you can safely remove them
 
     description = "Cornhub"
-    authors = listOf("KillerDogeEmpire, Stormunblessed, Jace ,Hexated, Coxju")
+    authors = listOf("Stormunblessed", "Jace")
 
     /**
     * Status int as the following:
