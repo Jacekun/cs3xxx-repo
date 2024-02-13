@@ -1,101 +1,99 @@
 package com.jacekun
 
-import android.util.Log
+
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.mvvm.logError
-import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.utils.getQualityFromName
-import org.jsoup.select.Elements
+import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
+import com.lagradost.cloudstream3.utils.*
+import okhttp3.FormBody
+import org.jsoup.nodes.Element
+
 
 class HentaiHaven : MainAPI() {
-    private val globalTvType = TvType.NSFW
-    override var name = "Hentai Haven"
     override var mainUrl = "https://hentaihaven.xxx"
-    override val supportedTypes = setOf(TvType.NSFW)
-    override val hasDownloadSupport = false
-    override val hasMainPage= true
-    override val hasQuickSearch = false
+    override var name = "Hentaiheaven"
+    override val hasMainPage = true
+    override var lang = "en"
+    override val hasDownloadSupport = true
+
+    override val supportedTypes = setOf(
+        TvType.NSFW)
+
+    override val mainPage = mainPageOf(
+        "?m_orderby=new-manga" to "New",
+        "?m_orderby=views" to "Most Views",
+        "?m_orderby=rating" to "Rating",
+        "?m_orderby=alphabet" to "A-Z",
+    )
 
     override suspend fun getMainPage(
         page: Int,
         request: MainPageRequest
     ): HomePageResponse {
-        val doc = app.get(mainUrl).document
-        val all = ArrayList<HomePageList>()
-
-        doc.getElementsByTag("body").select("div.c-tabs-item")
-            .select("div.vraven_home_slider").forEach { it2 ->
-                // Fetch row title
-                val title = it2?.select("div.home_slider_header")?.text() ?: "Unnamed Row"
-                // Fetch list of items and map
-                it2.select("div.page-content-listing div.item.vraven_item.badge-pos-1").let { inner ->
-
-                    all.add(
-                        HomePageList(
-                            name = title,
-                            list = inner.getResults(this.name),
-                            isHorizontalImages = false
-                        )
-                    )
-                }
+        val document = app.get("$mainUrl/page/$page/${request.data}").document
+        val home =
+            document.select("div.page-listing-item div.col-6.col-md-zarat.badge-pos-1").mapNotNull {
+                it.toSearchResult()
             }
-        return HomePageResponse(all)
+        return newHomePageResponse(request.name, home)
+    }
+
+    private fun Element.toSearchResult(): AnimeSearchResponse? {
+        val href = fixUrl(this.selectFirst("a")!!.attr("href"))
+        val title =
+            this.selectFirst("h3 a, h5 a")?.text()?.trim() ?: this.selectFirst("a")?.attr("title")
+            ?: return null
+        val posterUrl = fixUrlNull(this.selectFirst("img")?.attr("src"))
+        val episode = this.selectFirst("span.chapter.font-meta a")?.text()?.filter { it.isDigit() }
+            ?.toIntOrNull()
+
+        return newAnimeSearchResponse(title, href, TvType.Anime) {
+            this.posterUrl = posterUrl
+            addSub(episode)
+        }
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
-        val searchUrl = "${mainUrl}/?s=${query}&post_type=wp-manga"
-        return app.get(searchUrl).document
-            .select("div.c-tabs-item div.row.c-tabs-item__content")
-            .getResults(this.name)
+        val link = "$mainUrl/?s=$query&post_type=wp-manga"
+        val document = app.get(link).document
+
+        return document.select("div.c-tabs-item > div.c-tabs-item__content").mapNotNull {
+            it.toSearchResult()
+        }
     }
 
-    override suspend fun load(url: String): LoadResponse {
-        //TODO: Load polishing
-        val doc = app.get(url).document
-        //Log.i(this.name, "Result => (url) ${url}")
-        val poster = doc.select("meta[property=og:image]")
-            .firstOrNull()?.attr("content")
-        val title = doc.select("meta[name=title]")
-            .firstOrNull()?.attr("content")
-            ?.toString() ?: ""
-        val descript = doc.select("div.description-summary").text()
+    override suspend fun load(url: String): LoadResponse? {
+        val document = app.get(url).document
 
-        val body = doc.getElementsByTag("body")
-        val episodes = body.select("div.page-content-listing.single-page")
-            .first()?.select("li")
+        val title = document.selectFirst("div.post-title h1")?.text()?.trim() ?: return null
+        val poster = document.select("div.summary_image img").attr("src")
+        val tags = document.select("div.genres-content > a").map { it.text() }
 
-        val year = episodes?.last()
-            ?.selectFirst("span.chapter-release-date")
-            ?.text()?.trim()?.takeLast(4)?.toIntOrNull()
+        val description = document.select("div.description-summary p").text().trim()
+        val trailer = document.selectFirst("a.trailerbutton")?.attr("href")
 
-        val episodeList = episodes?.mapNotNull {
-            val innerA = it?.selectFirst("a") ?: return@mapNotNull null
-            val eplink = innerA.attr("href") ?: return@mapNotNull null
-            val epCount = innerA.text().trim().filter { a -> a.isDigit() }.toIntOrNull()
-            val imageEl = innerA.selectFirst("img")
-            val epPoster = imageEl?.attr("src") ?: imageEl?.attr("data-src")
-            Episode(
-                name = innerA.text(),
-                data = eplink,
-                posterUrl = epPoster,
-                episode = epCount,
-            )
-        } ?: listOf()
+        val episodes = document.select("div.listing-chapters_wrap ul li").mapNotNull {
+            val name = it.selectFirst("a")?.text() ?: return@mapNotNull null
+            val image = fixUrlNull(it.selectFirst("a img")?.attr("src"))
+            val link = fixUrlNull(it.selectFirst("a")?.attr("href")) ?: return@mapNotNull null
+            Episode(link, name, posterUrl = image)
+        }.reversed()
 
-        //Log.i(this.name, "Result => (id) ${id}")
-        return AnimeLoadResponse(
-            name = title,
-            url = url,
-            apiName = this.name,
-            type = globalTvType,
-            posterUrl = poster,
-            year = year,
-            plot = descript,
-            episodes = mutableMapOf(
-                Pair(DubStatus.Subbed, episodeList.reversed())
-            )
-        )
+        val recommendations =
+            document.select("div.row div.col-6.col-md-zarat").mapNotNull {
+                it.toSearchResult()
+            }
+
+        return newAnimeLoadResponse(title, url, TvType.NSFW) {
+            engName = title
+            posterUrl = poster
+            addEpisodes(DubStatus.Subbed, episodes)
+            plot = description
+            this.tags = tags
+            this.recommendations = recommendations
+            addTrailer(trailer)
+        }
+
     }
 
     override suspend fun loadLinks(
@@ -105,120 +103,66 @@ class HentaiHaven : MainAPI() {
         callback: (ExtractorLink) -> Unit
     ): Boolean {
 
-        try {
-            Log.i(name, "Loading iframe")
-            val requestLink = "${mainUrl}/wp-content/plugins/player-logic/api.php"
-            val action = "zarat_get_data_player_ajax"
-            val reA = Regex("(?<=var en =)(.*?)(?=';)", setOf(RegexOption.DOT_MATCHES_ALL))
-            val reB = Regex("(?<=var iv =)(.*?)(?=';)", setOf(RegexOption.DOT_MATCHES_ALL))
+        val doc = app.get(data).document
+        val meta = doc.selectFirst("meta[itemprop=thumbnailUrl]")?.attr("content")?.substringAfter("/hh/")?.substringBefore("/") ?: return false
+        doc.select("div.player_logic_item iframe").attr("src").let { iframe ->
+            val document = app.get(iframe, referer = data).text
+            val en = Regex("var\\sen\\s=\\s'(\\S+)';").find(document)?.groupValues?.getOrNull(1)
+            val iv = Regex("var\\siv\\s=\\s'(\\S+)';").find(document)?.groupValues?.getOrNull(1)
 
-            app.get(data).document.selectFirst("div.player_logic_item iframe")
-                ?.attr("src")?.let { epLink ->
+            val body = FormBody.Builder()
+                .addEncoded("action", "zarat_get_data_player_ajax")
+                .addEncoded("a", "$en")
+                .addEncoded("b", "$iv")
+                .build()
 
-                    Log.i(name, "Loading ep link => $epLink")
-                    val scrAppGet = app.get(epLink, referer = data)
-                    val scrDoc = scrAppGet.document.getElementsByTag("script").toString()
-                    //Log.i(name, "Loading scrDoc => (${scrAppGet.code}) $scrDoc")
-                    if (scrDoc.isNotBlank()) {
-                        //en
-                        val a = reA.find(scrDoc)?.groupValues?.getOrNull(1)
-                            ?.trim()?.removePrefix("'") ?: ""
-                        //iv
-                        val b = reB.find(scrDoc)?.groupValues?.getOrNull(1)
-                            ?.trim()?.removePrefix("'") ?: ""
-
-                        Log.i(name, "a => $a")
-                        Log.i(name, "b => $b")
-
-                        val doc = app.post(
-                            url = requestLink,
-                            headers = mapOf(
-//                              Pair("mode", "cors"),
-//                              Pair("Content-Type", "multipart/form-data"),
-//                              Pair("Origin", mainUrl),
-//                              Pair("Host", mainUrl.split("//").last()),
-                                Pair("User-Agent", USER_AGENT),
-                                Pair("Sec-Fetch-Mode", "cors")
-                            ),
-                            data = mapOf(
-                                Pair("action", action),
-                                Pair("a", a),
-                                Pair("b", b)
-                            )
-                        )
-                        Log.i(name, "Response (${doc.code}) => ${doc.text}")
-                        //AppUtils.tryParseJson<ResponseJson?>(doc.text)
-                        doc.parsedSafe<ResponseJson>()?.data?.sources?.map { m3src ->
-                            val m3srcFile = m3src.src ?: return@map null
-                            val label = m3src.label ?: ""
-                            Log.i(name, "M3u8 link: $m3srcFile")
-                            callback.invoke(
-                                ExtractorLink(
-                                    name = "$name m3u8",
-                                    source = "$name m3u8",
-                                    url = m3srcFile,
-                                    referer = "$mainUrl/",
-                                    quality = getQualityFromName(label),
-                                    isM3u8 = true
-                                )
-                            )
-                        }
-                    }
-                }
-        } catch (e: Exception) {
-            Log.i(name, "Error => $e")
-            logError(e)
-            return false
+            app.post(
+                "$mainUrl/wp-content/plugins/player-logic/api.php",
+//                data = mapOf(
+//                    "action" to "zarat_get_data_player_ajax",
+//                    "a" to "$en",
+//                    "b" to "$iv"
+//                ),
+                requestBody = body,
+//                headers = mapOf("Sec-Fetch-Mode" to "cors")
+            ).parsedSafe<Response>()?.data?.sources?.map { res ->
+//                M3u8Helper.generateM3u8(
+//                    this.name,
+//                    res.src ?: return@map null,
+//                    referer = "$mainUrl/",
+//                    headers = mapOf(
+//                        "Origin" to mainUrl,
+//                    )
+//                ).forEach(callback)
+                callback.invoke(
+                    ExtractorLink(
+                        this.name,
+                        this.name,
+                        res.src?.replace("/hh//", "/hh/$meta/") ?: return@map null,
+                        referer = "",
+                        quality = Qualities.Unknown.value,
+                        isM3u8 = true
+                    )
+                )
+            }
         }
+
         return true
     }
 
-    private fun Elements?.getResults(apiName: String): List<AnimeSearchResponse> {
-        return this?.mapNotNull {
-            val innerDiv = it.select("div").firstOrNull()
-            val firstA = innerDiv?.selectFirst("a")
-            val link = fixUrlNull(firstA?.attr("href")) ?: return@mapNotNull null
-            val name = firstA?.attr("title") ?: "<No Title>"
-            val year = innerDiv?.selectFirst("span.c-new-tag")?.selectFirst("a")
-                ?.attr("title")?.takeLast(4)?.toIntOrNull()
-
-            val imageDiv = firstA?.selectFirst("img")
-            var image = imageDiv?.attr("src")
-            if (image.isNullOrBlank()) {
-                image = imageDiv?.attr("data-src")
-            }
-
-            val latestEp = innerDiv?.selectFirst("div.list-chapter")
-                ?.selectFirst("div.chapter-item")
-                ?.selectFirst("a")
-                ?.text()
-                ?.filter { a -> a.isDigit() }
-                ?.toIntOrNull() ?: 0
-            val dubStatus = mutableMapOf(
-                Pair(DubStatus.Subbed, latestEp)
-            )
-
-            AnimeSearchResponse(
-                name = name,
-                url = link,
-                apiName = apiName,
-                type = globalTvType,
-                posterUrl = image,
-                year = year,
-                episodes = dubStatus
-            )
-        } ?: listOf()
-    }
-
-    private data class ResponseJson(
-        @JsonProperty("data") val data: ResponseData?
+    data class Response(
+        @JsonProperty("data") val data: Data? = null,
     )
-    private data class ResponseData(
-        @JsonProperty("sources") val sources: List<ResponseSources>? = listOf()
+
+    data class Data(
+        @JsonProperty("sources") val sources: ArrayList<Sources>? = arrayListOf(),
     )
-    private data class ResponseSources(
-        @JsonProperty("src") val src: String?,
-        @JsonProperty("type") val type: String?,
-        @JsonProperty("label") val label: String?
+
+    data class Sources(
+        @JsonProperty("src") val src: String? = null,
+        @JsonProperty("type") val type: String? = null,
+        @JsonProperty("label") val label: String? = null,
     )
+
+
 }
