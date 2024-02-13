@@ -38,18 +38,18 @@ class NoodleMagazineProvider : MainAPI() { // all providers must be an instance 
         return newHomePageResponse(request.name, home)
     }
 
-    private fun Element.toSearchResult(): AnimeSearchResponse? {
+    private fun Element.toSearchResult(): MovieSearchResponse? {
         val href = fixUrl(this.selectFirst("a")?.attr("href") ?: return null)
         val title = this.selectFirst("a div.i_info div.title")?.text() ?: return null
         val posterUrl = fixUrlNull(this.selectFirst("a div.i_img img")?.attr("data-src"))
 
-        return newAnimeSearchResponse(title, href, TvType.Anime) {
+        return newMovieSearchResponse(title, href, TvType.Movie) {
             this.posterUrl = posterUrl
         }
     }
 
-    override suspend fun search(query: String): List<AnimeSearchResponse> {
-        val searchresult = mutableListOf<AnimeSearchResponse>()
+    override suspend fun search(query: String): List<MovieSearchResponse> {
+        val searchresult = mutableListOf<MovieSearchResponse>()
         (0..10).toList().apmap { page ->
             val doc = app.get("$mainUrl/video/$query?p=$page").document
             //return document.select("div.post-filter-image").mapNotNull {
