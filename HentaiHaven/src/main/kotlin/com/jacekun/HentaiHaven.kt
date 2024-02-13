@@ -11,7 +11,7 @@ import org.jsoup.nodes.Element
 
 class HentaiHaven : MainAPI() {
     override var mainUrl = "https://hentaihaven.xxx"
-    override var name = "Hentaiheaven"
+    override var name = "Hentai Haven"
     override val hasMainPage = true
     override var lang = "en"
     override val hasDownloadSupport = true
